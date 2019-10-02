@@ -8,7 +8,7 @@ import 'package:flutter/services.dart' show rootBundle;
 class ChapterPresenter extends StatelessWidget {
   Selection selection;
 
-  ChapterPresenter(this.selection) {}
+  ChapterPresenter(this.selection);
 
   Future<dynamic> loadAsset() async {
     var jsonString = await rootBundle.loadString(
@@ -24,8 +24,8 @@ class ChapterPresenter extends StatelessWidget {
         selection.chapter == null) {
       return Text("Select");
     }
-    return Container(
-        padding: EdgeInsets.all(10),
+    return SingleChildScrollView(
+        padding: EdgeInsets.all(0),
         child: StreamBuilder(
             stream: this.loadVerses(),
             builder: (context, snap) {
@@ -37,14 +37,28 @@ class ChapterPresenter extends StatelessWidget {
               }
               if (snap.connectionState == ConnectionState.done) {
                 TextChapter chapter = snap.data;
-                return Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    children: chapter.verses
-                        .map((verse) =>
-                            verse.words.skip(1).map((word) => WordBlock(word)))
-                        .expand((i) => i)
-                        .toList());
+
+                var list = chapter.verses
+                    .asMap()
+                    .map((index, verse) {
+                      var words = verse.words
+                          .skip(1)
+                          .map((word) => (WordBlock(word) as Widget))
+                          .toList(growable: true);
+
+                      words.insert(
+                          0,
+                          Text(
+                            (index + 1).toString(),
+                            style: TextStyle(color: Colors.lightBlue),
+                          ));
+                      return MapEntry(index, words);
+                    })
+                    .values
+                    .toList()
+                    .expand((i) => i)
+                    .toList();
+                return Wrap(spacing: 10, runSpacing: 10, children: list);
               } else {
                 return Text("Loading...");
               }
@@ -70,7 +84,13 @@ class WordBlock extends StatelessWidget {
           color: Colors.white,
         ),
         child: Column(
-          children: <Widget>[Text(word.hun), Text(word.greek)],
+          children: <Widget>[
+            Text(
+              word.hun,
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+            Text(word.greek, style: TextStyle(fontSize: 16))
+          ],
         ));
   }
 }

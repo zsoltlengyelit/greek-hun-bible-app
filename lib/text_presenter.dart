@@ -71,11 +71,10 @@ class TextPresenterPage extends StatelessWidget {
           )
         ],
       ),
-      body: Wrap(
-        spacing: 8,
-        runSpacing: 4,
-        children: <Widget>[
-          StreamBuilder(
+      body: Container(
+          padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
+          // decoration: BoxDecoration(border: Border.all(color: Colors.red)),
+          child: StreamBuilder(
               stream: selectionChange,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.active) {
@@ -83,9 +82,7 @@ class TextPresenterPage extends StatelessWidget {
                   return ChapterPresenter(data);
                 }
                 return Text('Nincs kivalasztva');
-              })
-        ],
-      ),
+              })),
     );
   }
 
