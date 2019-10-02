@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
+import 'chapter_presenter.dart';
 import 'corposues.dart';
-import 'selector_dialog.dart';
+import 'dialog_content.dart';
 
 class TextPresenterPageArgs {
   Verse verse;
@@ -65,75 +66,7 @@ class TextPresenterPage extends StatelessWidget {
               color: Colors.white,
             ),
             onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (context) {
-                    return AlertDialog(
-                      contentPadding: EdgeInsets.all(0),
-                      content: DialogContent(args, corpuses, selectionChange),
-                      titlePadding:
-                          EdgeInsets.symmetric(vertical: 0, horizontal: 0),
-                      title: Container(
-                        padding: EdgeInsets.all(0),
-                        child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              StreamBuilder(
-                                  stream: selectionChange,
-                                  builder: (context, snap) {
-                                    Selection data = snap.data;
-                                    return data?.type == SelectionType.Corpus ||
-                                            data == null
-                                        ? Spacer()
-                                        : FlatButton(
-                                            child: Icon(Icons.arrow_back),
-                                            onPressed: () {
-                                              switch (data.type) {
-                                                case SelectionType.Corpus:
-                                                  break;
-                                                case SelectionType.Book:
-                                                  selectionChange
-                                                      .add(Selection());
-                                                  break;
-                                                case SelectionType.Chapter:
-                                                  selectionChange.add(
-                                                      Selection.copy(
-                                                          SelectionType.Book,
-                                                          data.corpus,
-                                                          null));
-                                                  break;
-                                                case SelectionType.Verse:
-                                                  selectionChange.add(
-                                                      Selection.copy(
-                                                          SelectionType.Chapter,
-                                                          data.corpus,
-                                                          data.book));
-                                                  break;
-                                              }
-                                            },
-                                          );
-                                  }),
-                              Expanded(
-                                  child: StreamBuilder(
-                                      stream: selectionChange,
-                                      builder: (context, snapshot) {
-                                        Selection data = snapshot.data;
-                                        String title = dialogTitle(data);
-
-                                        return Text(title);
-                                      }))
-                            ]),
-                      ),
-                      actions: <Widget>[
-                        FlatButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                          },
-                          child: Text('OK'),
-                        )
-                      ],
-                    );
-                  });
+              showDialog(context: context, builder: this.buildDialog);
             },
           )
         ],
@@ -145,8 +78,11 @@ class TextPresenterPage extends StatelessWidget {
           StreamBuilder(
               stream: selectionChange,
               builder: (context, snapshot) {
-                Selection data = snapshot.data;
-                return Text(data.toString());
+                if (snapshot.connectionState == ConnectionState.active) {
+                  Selection data = snapshot.data;
+                  return ChapterPresenter(data);
+                }
+                return Text('Nincs kivalasztva');
               })
         ],
       ),
@@ -154,6 +90,68 @@ class TextPresenterPage extends StatelessWidget {
   }
 
   getDialogTitle() {}
+
+  Widget buildDialog(BuildContext context) {
+    return AlertDialog(
+      contentPadding: EdgeInsets.all(0),
+      content: DialogContent(args, corpuses, selectionChange),
+      titlePadding: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
+      title: Container(
+        padding: EdgeInsets.all(0),
+        child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              StreamBuilder(
+                  stream: selectionChange,
+                  builder: (context, snap) {
+                    Selection data = snap.data;
+                    return data?.type == SelectionType.Corpus || data == null
+                        ? Spacer()
+                        : FlatButton(
+                            child: Icon(Icons.arrow_back),
+                            onPressed: () {
+                              switch (data.type) {
+                                case SelectionType.Corpus:
+                                  break;
+                                case SelectionType.Book:
+                                  selectionChange.add(Selection());
+                                  break;
+                                case SelectionType.Chapter:
+                                  selectionChange.add(Selection.copy(
+                                      SelectionType.Book, data.corpus, null));
+                                  break;
+                                case SelectionType.Verse:
+                                  selectionChange.add(Selection.copy(
+                                      SelectionType.Chapter,
+                                      data.corpus,
+                                      data.book));
+                                  break;
+                              }
+                            },
+                          );
+                  }),
+              Expanded(
+                  child: StreamBuilder(
+                      stream: selectionChange,
+                      builder: (context, snapshot) {
+                        Selection data = snapshot.data;
+                        String title = dialogTitle(data);
+
+                        return Text(title);
+                      })),
+              Align()
+            ]),
+      ),
+      actions: <Widget>[
+        FlatButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: Text('OK'),
+        )
+      ],
+    );
+  }
 
   String dialogTitle(Selection data) {
     switch (data?.type) {
@@ -167,60 +165,5 @@ class TextPresenterPage extends StatelessWidget {
         return 'Vers';
     }
     return "";
-  }
-}
-
-class DialogContent extends StatelessWidget {
-  final TextPresenterPageArgs args;
-  final List<Corpus> corpuses;
-  final Subject<Selection> selectionChange;
-
-  DialogContent(this.args, this.corpuses, this.selectionChange);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-        width: 300,
-        height: 300,
-        padding: EdgeInsets.all(0.0),
-        child: StreamBuilder(
-            stream: selectionChange,
-            builder: (context, snap) {
-              if (snap.connectionState == ConnectionState.active) {
-                Selection data = snap.data;
-                return buildSelector(context, data);
-              }
-              return Column();
-            }));
-  }
-
-  buildSelector(BuildContext context, Selection selection) {
-    switch (selection.type) {
-      case SelectionType.Corpus:
-        return CorpusSelectorGrid(corpuses, (corpus) {
-          selection.type = SelectionType.Book;
-          selection.corpus = corpus;
-          selectionChange.add(selection);
-        });
-      case SelectionType.Book:
-        return BookSelectorGrid(selection.corpus, (book) {
-          selection.book = book;
-          selection.type = SelectionType.Chapter;
-          selectionChange.add(selection);
-        });
-      case SelectionType.Chapter:
-        return ChapterSelectorGrid(selection.book, selection.corpus, (chapter) {
-          selection.chapter = chapter;
-          selection.type = SelectionType.Verse;
-          selectionChange.add(selection);
-        });
-      case SelectionType.Verse:
-        return VerseSelectorGrid(
-            selection.chapter, selection.book, selection.corpus, (verse) {
-          selection.verse = verse;
-          selectionChange.add(selection);
-          Navigator.pop(context);
-        });
-    }
   }
 }
