@@ -46,8 +46,9 @@ class DialogContent extends StatelessWidget {
       case SelectionType.Chapter:
         return ChapterSelectorGrid(selection.book, selection.corpus, (chapter) {
           selection.chapter = chapter;
-          selection.type = SelectionType.Verse;
+//          selection.type = SelectionType.Verse;
           selectionChange.add(selection);
+          Navigator.pop(context);
         });
       case SelectionType.Verse:
         return VerseSelectorGrid(

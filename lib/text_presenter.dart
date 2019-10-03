@@ -51,14 +51,21 @@ class TextPresenterPage extends StatelessWidget {
     selectionChange.close();
   }
 
-  String title() =>
-      "${args.corpus.nev} ${args.book.nev} ${args.chapter.index},${args.verse.index}";
+  String title(Selection sel) =>
+      "${sel.corpus?.nev ?? ""} ${sel.book?.nev ?? ""} ${sel.chapter?.index ?? ""}";
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(title()),
+        title: StreamBuilder(
+            stream: selectionChange,
+            builder: (c, snap) {
+              return Text(snap.connectionState == ConnectionState.active &&
+                      snap.data != null
+                  ? title(snap.data)
+                  : "Gorog - magyar Biblia");
+            }),
         actions: <Widget>[
           FlatButton(
             child: Icon(
@@ -66,7 +73,10 @@ class TextPresenterPage extends StatelessWidget {
               color: Colors.white,
             ),
             onPressed: () {
-              showDialog(context: context, builder: this.buildDialog);
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: this.buildDialog);
             },
           )
         ],
