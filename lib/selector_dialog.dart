@@ -27,7 +27,8 @@ class _SelectorGridState<A> extends State<SelectorGrid<A>> {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
+    return Scrollbar(
+        child: GridView.count(
       shrinkWrap: true,
       crossAxisCount: colPreRow,
       scrollDirection: Axis.vertical,
@@ -44,7 +45,7 @@ class _SelectorGridState<A> extends State<SelectorGrid<A>> {
                 overflow: TextOverflow.fade,
               ))))
           .toList(),
-    );
+    ));
   }
 }
 

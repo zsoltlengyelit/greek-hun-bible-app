@@ -4,6 +4,7 @@ import 'package:rxdart/rxdart.dart';
 import 'chapter_presenter.dart';
 import 'corposues.dart';
 import 'dialog_content.dart';
+import 'dialog_page_controller.dart';
 
 class TextPresenterPageArgs {
   Verse verse;
@@ -14,14 +15,13 @@ class TextPresenterPageArgs {
   TextPresenterPageArgs(this.verse, this.chapter, this.book, this.corpus);
 }
 
-enum SelectionType { Corpus, Book, Chapter, Verse }
+enum SelectionType { Corpus, Book, Chapter }
 
 class Selection {
   SelectionType type = SelectionType.Corpus;
   Corpus corpus;
   Book book;
   Chapter chapter;
-  Verse verse;
 
   factory Selection.copy(SelectionType type, Corpus corpus, Book book) {
     var selection = Selection();
@@ -35,9 +35,12 @@ class Selection {
 
   @override
   String toString() {
-    return "${corpus?.nev} ${book?.nev} ${chapter?.index} ${verse?.index}";
+    return "${corpus?.nev ?? ''} ${book?.nev ?? ''} ${chapter?.index ?? ''}"
+        .trim();
   }
 }
+
+var defultTitle = "Görög - magyar Biblia";
 
 class TextPresenterPage extends StatelessWidget {
   final TextPresenterPageArgs args;
@@ -51,8 +54,12 @@ class TextPresenterPage extends StatelessWidget {
     selectionChange.close();
   }
 
-  String title(Selection sel) =>
-      "${sel.corpus?.nev ?? ""} ${sel.book?.nev ?? ""} ${sel.chapter?.index ?? ""}";
+  String title(Selection sel) {
+    var t =
+        "${sel.corpus?.nev ?? ""} ${sel.book?.nev ?? ""} ${sel.chapter?.index ?? ""}"
+            .trim();
+    return t.isEmpty ? defultTitle : t;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +71,7 @@ class TextPresenterPage extends StatelessWidget {
               return Text(snap.connectionState == ConnectionState.active &&
                       snap.data != null
                   ? title(snap.data)
-                  : "Gorog - magyar Biblia");
+                  : defultTitle);
             }),
         actions: <Widget>[
           FlatButton(
@@ -73,10 +80,7 @@ class TextPresenterPage extends StatelessWidget {
               color: Colors.white,
             ),
             onPressed: () {
-              showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: this.buildDialog);
+              this.openSearch(context);
             },
           )
         ],
@@ -89,7 +93,8 @@ class TextPresenterPage extends StatelessWidget {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.active) {
                   Selection data = snapshot.data;
-                  return ChapterPresenter(data);
+                  return ChapterPresenter(
+                      data, (context) => this.openSearch(context));
                 }
                 return Text('Nincs kivalasztva');
               })),
@@ -99,9 +104,24 @@ class TextPresenterPage extends StatelessWidget {
   getDialogTitle() {}
 
   Widget buildDialog(BuildContext context) {
+    var pageController = DialogPageController();
+
+//    pageController.addListener(() {
+//      switch (pageController.page.toInt()) {
+//        case 0:
+//          selectionChange.add(Selection());
+//          break;
+//        case 1:
+//          selectionChange.add(Selection());
+//          break;
+//        case 2:
+//          break;
+//      }
+//    });
+
     return AlertDialog(
       contentPadding: EdgeInsets.all(0),
-      content: DialogContent(args, corpuses, selectionChange),
+      content: DialogContent(args, corpuses, selectionChange, pageController),
       titlePadding: EdgeInsets.symmetric(vertical: 0, horizontal: 0),
       title: Container(
         padding: EdgeInsets.all(0),
@@ -119,19 +139,16 @@ class TextPresenterPage extends StatelessWidget {
                             onPressed: () {
                               switch (data.type) {
                                 case SelectionType.Corpus:
+                                  // cannot happen
                                   break;
                                 case SelectionType.Book:
                                   selectionChange.add(Selection());
+                                  pageController.goTo(0);
                                   break;
                                 case SelectionType.Chapter:
                                   selectionChange.add(Selection.copy(
                                       SelectionType.Book, data.corpus, null));
-                                  break;
-                                case SelectionType.Verse:
-                                  selectionChange.add(Selection.copy(
-                                      SelectionType.Chapter,
-                                      data.corpus,
-                                      data.book));
+                                  pageController.goTo(1);
                                   break;
                               }
                             },
@@ -160,17 +177,12 @@ class TextPresenterPage extends StatelessWidget {
     );
   }
 
+  openSearch(context) {
+    showDialog(
+        context: context, barrierDismissible: false, builder: this.buildDialog);
+  }
+
   String dialogTitle(Selection data) {
-    switch (data?.type) {
-      case SelectionType.Corpus:
-        return ('');
-      case SelectionType.Book:
-        return ('Könyv');
-      case SelectionType.Chapter:
-        return ('Fejezet');
-      case SelectionType.Verse:
-        return 'Vers';
-    }
-    return "";
+    return data.toString();
   }
 }

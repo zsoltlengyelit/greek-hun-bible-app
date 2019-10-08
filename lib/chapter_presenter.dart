@@ -1,19 +1,28 @@
 import 'dart:async';
-import 'dart:convert';
 
+import 'package:UjSzov/protobuf/chapter.pb.dart';
 import 'package:UjSzov/text_presenter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 class ChapterPresenter extends StatelessWidget {
   Selection selection;
+  Function(BuildContext c) searchOpener;
 
-  ChapterPresenter(this.selection);
+  ChapterPresenter(this.selection, this.searchOpener);
 
-  Future<dynamic> loadAsset() async {
-    var jsonString = await rootBundle.loadString(
-        'assets/chapters/${selection.corpus.id}_${selection.book.konyv_id}_${selection.chapter.index}.json');
-    dynamic data = jsonDecode(jsonString);
+  Future<Chapter> loadChapter() async {
+    var protoFileData = await rootBundle.load(
+        'assets/protobuf_data/${selection.corpus.id}_${selection.book.konyv_id}_${selection.chapter.index}.bin');
+    dynamic data = Chapter.fromBuffer(protoFileData.buffer.asUint8List());
+    return data;
+  }
+
+  Future<ExtendedChapter> loadExtendedChapter() async {
+    var protoFileData = await rootBundle.load(
+        'assets/protobuf_data/${selection.corpus.id}_${selection.book.konyv_id}_${selection.chapter.index}.ext.bin');
+    dynamic data =
+        ExtendedChapter.fromBuffer(protoFileData.buffer.asUint8List());
     return data;
   }
 
@@ -22,7 +31,16 @@ class ChapterPresenter extends StatelessWidget {
     if (selection.corpus == null ||
         selection.book == null ||
         selection.chapter == null) {
-      return Text("Select");
+      return Center(
+          child: GestureDetector(
+              child: Icon(
+                Icons.book,
+                size: 200,
+                color: Colors.lightGreen,
+              ),
+              onTap: () {
+                this.searchOpener(context);
+              }));
     }
     return SingleChildScrollView(
         padding: EdgeInsets.all(0),
@@ -36,97 +54,91 @@ class ChapterPresenter extends StatelessWidget {
                 );
               }
               if (snap.connectionState == ConnectionState.done) {
-                TextChapter chapter = snap.data;
+                Chapter chapter = snap.data;
 
-                var list = chapter.verses
-                    .asMap()
-                    .map((index, verse) {
-                      var words = verse.words
-                          .skip(1)
-                          .map((word) => (WordBlock(word) as Widget))
-                          .toList(growable: true);
-
-                      words.insert(
-                          0,
-                          Text(
-                            (index + 1).toString(),
-                            style: TextStyle(color: Colors.lightBlue),
-                          ));
-                      return MapEntry(index, words);
-                    })
-                    .values
-                    .toList()
-                    .expand((i) => i)
-                    .toList();
-                return Wrap(spacing: 10, runSpacing: 10, children: list);
+                return buildSentences(chapter);
               } else {
-                return Text("Loading...");
+                return Container(
+                    child: Center(child: Icon(Icons.swap_vertical_circle)));
               }
             }));
   }
 
-  Stream<TextChapter> loadVerses() {
-    return Stream.fromFuture(loadAsset())
-        .map((data) => convertTextChapter(data));
+  Wrap buildSentences(Chapter chapter) {
+    var list = chapter.verses
+        .asMap()
+        .map((index, verse) {
+          var words =
+              verse.words.skip(1).map(mapWordBlock).toList(growable: true);
+
+          words.insert(
+              0,
+              Text(
+                (index + 1).toString(),
+                style: TextStyle(color: Colors.lightBlue),
+              ));
+          return MapEntry(index, words);
+        })
+        .values
+        .toList()
+        .expand((i) => i)
+        .toList();
+    return Wrap(spacing: 10, runSpacing: 10, children: list);
+  }
+
+  Widget mapWordBlock(word) =>
+      WordBlock(word, () => this.loadExtendedChapter());
+
+  Stream<Chapter> loadVerses() {
+    return Stream.fromFuture(loadChapter());
   }
 }
 
 class WordBlock extends StatelessWidget {
-  TextWord word;
-  WordBlock(this.word);
+  Chapter_Verse_Word word;
+  Future<ExtendedChapter> Function() extensionLoader;
+
+  WordBlock(this.word, this.extensionLoader);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-        padding: EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.transparent),
-          color: Colors.white,
-        ),
-        child: Column(
-          children: <Widget>[
-            Text(
-              word.hun,
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+    return GestureDetector(
+        child: Container(
+            padding: EdgeInsets.all(2),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.transparent),
+              color: Colors.white,
             ),
-            Text(word.greek, style: TextStyle(fontSize: 16))
-          ],
-        ));
+            child: Column(
+              children: <Widget>[
+                Text(
+                  word.hun,
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+                Text(word.greek, style: TextStyle(fontSize: 16))
+              ],
+            )),
+        onTap: () {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                    content: StreamBuilder(
+                        stream: Stream.fromFuture(this.extensionLoader()),
+                        builder: (context, snap) {
+                          if (snap.connectionState == ConnectionState.waiting) {
+                            return Icon(Icons.swap_vertical_circle);
+                          }
+                          if (snap.connectionState == ConnectionState.done) {
+                            ExtendedChapter ch = snap.data;
+                            var wordExt = ch.words.firstWhere((entry) {
+                              return entry.wordId == this.word.wordId;
+                            });
+                            return Text(wordExt.hunExt);
+                          }
+                          return Text("Error");
+                        }));
+              });
+        });
   }
-}
-
-TextChapter convertTextChapter(dynamic data) =>
-    TextChapter(convertVerses(data["verses"]));
-
-List<TextVerse> convertVerses(List<dynamic> verses) =>
-    verses.map((vers) => TextVerse(convertWords(vers["words"]))).toList();
-
-List<TextWord> convertWords(List<dynamic> words) {
-  return words.map((word) {
-    return TextWord(word["greek"], word["hun"], word["hunExt"], word["wordId"],
-        word["szhuVersId"], word["morph"]);
-  }).toList();
-}
-
-class TextChapter {
-  List<TextVerse> verses;
-
-  TextChapter(this.verses);
-}
-
-class TextVerse {
-  List<TextWord> words;
-  TextVerse(this.words);
-}
-
-class TextWord {
-  String greek;
-  String hun;
-  String hunExt;
-  String wordId;
-  String szhuVersId;
-  String morph;
-
-  TextWord(this.greek, this.hun, this.hunExt, this.wordId, this.szhuVersId,
-      this.morph);
 }
