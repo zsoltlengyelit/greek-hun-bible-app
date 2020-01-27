@@ -14,8 +14,6 @@ class Chapter_Verse_Word extends $pb.GeneratedMessage {
     ..aQS(1, 'greek')
     ..aQS(2, 'hun')
     ..aQS(3, 'wordId')
-    ..aQS(4, 'szhuversid')
-    ..aQS(5, 'morph')
   ;
 
   Chapter_Verse_Word._() : super();
@@ -59,24 +57,6 @@ class Chapter_Verse_Word extends $pb.GeneratedMessage {
   $core.bool hasWordId() => $_has(2);
   @$pb.TagNumber(3)
   void clearWordId() => clearField(3);
-
-  @$pb.TagNumber(4)
-  $core.String get szhuversid => $_getSZ(3);
-  @$pb.TagNumber(4)
-  set szhuversid($core.String v) { $_setString(3, v); }
-  @$pb.TagNumber(4)
-  $core.bool hasSzhuversid() => $_has(3);
-  @$pb.TagNumber(4)
-  void clearSzhuversid() => clearField(4);
-
-  @$pb.TagNumber(5)
-  $core.String get morph => $_getSZ(4);
-  @$pb.TagNumber(5)
-  set morph($core.String v) { $_setString(4, v); }
-  @$pb.TagNumber(5)
-  $core.bool hasMorph() => $_has(4);
-  @$pb.TagNumber(5)
-  void clearMorph() => clearField(5);
 }
 
 class Chapter_Verse extends $pb.GeneratedMessage {
@@ -131,6 +111,13 @@ class ExtendedChapter_WordEntry extends $pb.GeneratedMessage {
   static final $pb.BuilderInfo _i = $pb.BuilderInfo('ExtendedChapter.WordEntry', package: const $pb.PackageName('interlang'), createEmptyInstance: create)
     ..aQS(1, 'wordId')
     ..aQS(2, 'hunExt')
+    ..aQS(3, 'morph')
+    ..aQS(4, 'szhuversid')
+    ..aQS(5, 'szal')
+    ..aQS(6, 'szf')
+    ..aQS(7, 'dictmj')
+    ..aQS(8, 'dictvalt')
+    ..aQS(9, 'lj')
   ;
 
   ExtendedChapter_WordEntry._() : super();
@@ -165,6 +152,69 @@ class ExtendedChapter_WordEntry extends $pb.GeneratedMessage {
   $core.bool hasHunExt() => $_has(1);
   @$pb.TagNumber(2)
   void clearHunExt() => clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get morph => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set morph($core.String v) { $_setString(2, v); }
+  @$pb.TagNumber(3)
+  $core.bool hasMorph() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearMorph() => clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.String get szhuversid => $_getSZ(3);
+  @$pb.TagNumber(4)
+  set szhuversid($core.String v) { $_setString(3, v); }
+  @$pb.TagNumber(4)
+  $core.bool hasSzhuversid() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearSzhuversid() => clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.String get szal => $_getSZ(4);
+  @$pb.TagNumber(5)
+  set szal($core.String v) { $_setString(4, v); }
+  @$pb.TagNumber(5)
+  $core.bool hasSzal() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearSzal() => clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.String get szf => $_getSZ(5);
+  @$pb.TagNumber(6)
+  set szf($core.String v) { $_setString(5, v); }
+  @$pb.TagNumber(6)
+  $core.bool hasSzf() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearSzf() => clearField(6);
+
+  @$pb.TagNumber(7)
+  $core.String get dictmj => $_getSZ(6);
+  @$pb.TagNumber(7)
+  set dictmj($core.String v) { $_setString(6, v); }
+  @$pb.TagNumber(7)
+  $core.bool hasDictmj() => $_has(6);
+  @$pb.TagNumber(7)
+  void clearDictmj() => clearField(7);
+
+  @$pb.TagNumber(8)
+  $core.String get dictvalt => $_getSZ(7);
+  @$pb.TagNumber(8)
+  set dictvalt($core.String v) { $_setString(7, v); }
+  @$pb.TagNumber(8)
+  $core.bool hasDictvalt() => $_has(7);
+  @$pb.TagNumber(8)
+  void clearDictvalt() => clearField(8);
+
+  @$pb.TagNumber(9)
+  $core.String get lj => $_getSZ(8);
+  @$pb.TagNumber(9)
+  set lj($core.String v) { $_setString(8, v); }
+  @$pb.TagNumber(9)
+  $core.bool hasLj() => $_has(8);
+  @$pb.TagNumber(9)
+  void clearLj() => clearField(9);
 }
 
 class ExtendedChapter extends $pb.GeneratedMessage {

@@ -78,6 +78,7 @@ class BookSelectorGrid extends SelectorGrid<Book> {
 class ChapterlectorPageArgs {
   Book book;
   Corpus corpus;
+
   ChapterlectorPageArgs(this.book, this.corpus);
 }
 

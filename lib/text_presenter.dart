@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:flutter/material.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -63,6 +65,8 @@ class TextPresenterPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var textPageController = PageController();
+
     return Scaffold(
       appBar: AppBar(
         title: StreamBuilder(
@@ -88,17 +92,24 @@ class TextPresenterPage extends StatelessWidget {
       body: Container(
           padding: EdgeInsets.only(left: 10, right: 10, bottom: 10),
           // decoration: BoxDecoration(border: Border.all(color: Colors.red)),
-          child: StreamBuilder(
-              stream: selectionChange,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.active) {
-                  Selection data = snapshot.data;
-                  return ChapterPresenter(
-                      data, (context) => this.openSearch(context));
-                }
-                return Text('Nincs kivalasztva');
-              })),
+          child: PageView.builder(controller: textPageController ,itemBuilder: (ctx, page) {
+            developer.log('page' + page.toString());
+            return buildChapterPresenter();
+          })),
     );
+  }
+
+  StreamBuilder<Selection> buildChapterPresenter() {
+    return StreamBuilder(
+        stream: selectionChange,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.active) {
+            Selection data = snapshot.data;
+            return ChapterPresenter(
+                data, (context) => this.openSearch(context));
+          }
+          return Text('Nincs kivalasztva');
+        });
   }
 
   getDialogTitle() {}

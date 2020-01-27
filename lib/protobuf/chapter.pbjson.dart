@@ -27,8 +27,6 @@ const Chapter_Verse_Word$json = const {
     const {'1': 'greek', '3': 1, '4': 2, '5': 9, '10': 'greek'},
     const {'1': 'hun', '3': 2, '4': 2, '5': 9, '10': 'hun'},
     const {'1': 'word_id', '3': 3, '4': 2, '5': 9, '10': 'wordId'},
-    const {'1': 'szhuversid', '3': 4, '4': 2, '5': 9, '10': 'szhuversid'},
-    const {'1': 'morph', '3': 5, '4': 2, '5': 9, '10': 'morph'},
   ],
 };
 
@@ -45,6 +43,13 @@ const ExtendedChapter_WordEntry$json = const {
   '2': const [
     const {'1': 'word_id', '3': 1, '4': 2, '5': 9, '10': 'wordId'},
     const {'1': 'hun_ext', '3': 2, '4': 2, '5': 9, '10': 'hunExt'},
+    const {'1': 'morph', '3': 3, '4': 2, '5': 9, '10': 'morph'},
+    const {'1': 'szhuversid', '3': 4, '4': 2, '5': 9, '10': 'szhuversid'},
+    const {'1': 'szal', '3': 5, '4': 2, '5': 9, '10': 'szal'},
+    const {'1': 'szf', '3': 6, '4': 2, '5': 9, '10': 'szf'},
+    const {'1': 'dictmj', '3': 7, '4': 2, '5': 9, '10': 'dictmj'},
+    const {'1': 'dictvalt', '3': 8, '4': 2, '5': 9, '10': 'dictvalt'},
+    const {'1': 'lj', '3': 9, '4': 2, '5': 9, '10': 'lj'},
   ],
 };
 
